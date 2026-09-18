@@ -182,7 +182,13 @@ def fetch_financial_data(stock_code: str, report_period: str) -> FinData:
         return real
     if mode == MODE_REAL:
         raise RuntimeError("扶摇接口调用失败，DATA_MODE=real 下不降级，拒绝生成结论。")
-    return _demo_fin(stock_code, report_period)
+    try:
+        return _demo_fin(stock_code, report_period)
+    except KeyError as exc:
+        # 真实源不可达且演示库无此数据：明确说明是数据源问题，而非「标的不存在」
+        raise RuntimeError(
+            f"扶摇数据源暂不可达，且演示库无 {stock_code} {report_period} 数据，已拒绝生成结论。"
+        ) from exc
 
 
 def fetch_report_text(stock_code: str, report_period: str) -> ReportText:
